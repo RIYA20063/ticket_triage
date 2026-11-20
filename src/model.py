@@ -2,13 +2,10 @@ import joblib
 from src.preprocess import clean_text
 
 # Make the raw dataset labels sound like a triage system
-LABEL_MAP = {
-    'rec.sport.baseball': 'sports',
-    'comp.graphics': 'tech',
-    'sci.space': 'science',
-    'talk.politics.misc': 'politics',
-}
 
+# categories in the SAME order as CATEGORIES in train.py
+# model's targets are integers 0,1,2,3
+TARGET_NAMES = ['sports', 'tech', 'science', 'politics']
 # v1 rule: urgency from keywords (be honest about this in interviews!)
 URGENT_WORDS = {"urgent", "immediately", "asap", "emergency", "critical", "broken", "help"}
 
@@ -23,11 +20,11 @@ class TicketClassifier:
         cleaned = clean_text(text)
 
         probs = self.pipeline.predict_proba([cleaned])[0]   # probability for each category
-        raw_label = self.pipeline.classes_[probs.argmax()]  # most likely one
+        idx = int(probs.argmax())  # most likely one
         confidence = float(probs.max())                     # how sure is it?
 
         return {
-            "category": LABEL_MAP.get(raw_label, raw_label),
+            "category": TARGET_NAMES[idx],
             "confidence": round(confidence, 3),
             "urgency": self._urgency(cleaned),
         }
